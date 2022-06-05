@@ -3,7 +3,7 @@
 
 #include <list>
 
-typedef enum {VIDE, MUR} Case;
+typedef enum {VIDE, MUR, PION, GROSPION} Case;
 typedef enum {GAUCHE, DROITE, HAUT, BAS} Direction;
 
 class Jeu;
@@ -16,6 +16,8 @@ class Fantome
     int posX, posY;
     Direction dir;
     bool estMangeable;
+    //Compteur d'incrément de temps pour l'état mangeable
+    int compteur;
 
   public:
     Fantome();                      // Constructeur d'un fantome
@@ -24,6 +26,9 @@ class Fantome
 
     bool getEstMangeable() const;   // Retourne l'état du fantome
     void setEstMangeable(bool);     // Change l'état du fantome
+
+    int getCompteur() const;   // Retourne le numéro du compteur
+    void setCompteur(int);     // Change le numéro du compteur
 };
 
 class Jeu
@@ -33,6 +38,9 @@ class Jeu
     int largeur, hauteur; // Nombre de cases en largeur et en hauteur
     int posPacmanX, posPacmanY;
     int nbVies;
+    int score;
+    Direction directionPacman, directionPacmanFuture;
+    bool finNiveau;
 
   public:
     std::list<Fantome> fantomes;
@@ -69,8 +77,14 @@ class Jeu
     // Change le nombre de vies
     void setNbVie(int);
 
-    // Retourne la case à une position donnée (Mur/Vide)
+    //Change le score
+    void setScore(int);
+
+    // Retourne la case à une position donnée (Mur/Vide/Pion/Gros Pion)
     Case getCase(int, int) const;
+
+    //Retourne si le niveau est terminé
+    bool getFinNiveau() const;
 
     // Indique si la case à une position donnée existe et est vide
     // (Pacman ou les fantomes peuvent l'occuper)
@@ -78,6 +92,17 @@ class Jeu
 
     // Déplace Pacman dans une direction (si la case à atteindre est valide)
     bool deplacePacman(Direction);
+    bool deplacePacman();
+
+    //Set Direction pacman
+    void setDirectionPacman(Direction);
+    void setDirectionPacman();
+
+    //Test de position
+    void testPositionPacman();
+
+    //Test de fin de niveau
+    bool testFinNiveau();
 };
 
 #endif
