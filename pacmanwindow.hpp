@@ -13,6 +13,7 @@ class PacmanWindow : public QFrame
     //Images apparaissant dans la fenetre en tant qu'objets QPixmap
     QPixmap pixmapPacman, pixmapFantome, pixmapFantome2, pixmapVie, pixmapGO;
     QPixmap pixmapMur, pixmapVide, pixmapGrosPion, pixmapPion;
+    QPixmap pixmapDebutDans, pixmapImage1, pixmapImage2, pixmapImage3;
 
     //Déclaration pour être utilisable dans paintEvent
     QTimer *timer;
@@ -44,6 +45,7 @@ class PacmanWindow : public QFrame
     //Quand le jour perd la partie (nbVies<=0)
     void rebootGame();
     void finPartie();
+    void messageFenetre(int);
 };
 
 class PacmanBouton : public QPushButton
