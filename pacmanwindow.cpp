@@ -1,13 +1,14 @@
 #include <iostream>
 #include "pacmanwindow.hpp"
 #define Offset 50
+#define DelaisFantomes 80
 
 using namespace std;
 
 PacmanWindow::PacmanWindow(QWidget *pParent, Qt::WindowFlags flags):QFrame(pParent, flags)
 {
     //cout<<__FUNCTION__<<endl;
-    //cout<<"Appel de PacmanWindow()"<<endl;
+
     // Taille des cases en pixels
     int largeurCase, hauteurCase;
 
@@ -88,6 +89,30 @@ void PacmanWindow::loadImages()
     if (pixmapGrosPion.load("./data/grospion.bmp")==false)
     {
         cout<<"Impossible d'ouvrir grospion.png"<<endl;
+        exit(-1);
+    }
+
+    if (pixmapDebutDans.load("./data/debut dans.bmp")==false)
+    {
+        cout<<"Impossible d'ouvrir debut dans.bmp"<<endl;
+        exit(-1);
+    }
+
+    if (pixmapImage1.load("./data/image1.bmp")==false)
+    {
+        cout<<"Impossible d'ouvrir image1.bmp"<<endl;
+        exit(-1);
+    }
+
+    if (pixmapImage2.load("./data/image2.bmp")==false)
+    {
+        cout<<"Impossible d'ouvrir image2.bmp"<<endl;
+        exit(-1);
+    }
+
+    if (pixmapImage3.load("./data/image3.bmp")==false)
+    {
+        cout<<"Impossible d'ouvrir image3.bmp"<<endl;
         exit(-1);
     }
 }
@@ -181,40 +206,69 @@ void PacmanWindow::keyPressEvent(QKeyEvent *event)
     //cout<<__FUNCTION__<<endl;
     if (event->key()==Qt::Key_Left)
     {
-        jeu.setDirectionPacman(GAUCHE);
+        jeu.setDirectionPacmanFuture(GAUCHE);
+        cout<<"Touche Gauche"<<endl;
     }
     else if (event->key()==Qt::Key_Right)
     {
-        jeu.setDirectionPacman(DROITE);
+        jeu.setDirectionPacmanFuture(DROITE);
+        cout<<"Touche Droite"<<endl;
     }
     else if (event->key()==Qt::Key_Up)
     {
-        jeu.setDirectionPacman(HAUT);
+        jeu.setDirectionPacmanFuture(HAUT);
+        cout<<"Touche Haut"<<endl;
     }
     else if (event->key()==Qt::Key_Down)
     {
-        jeu.setDirectionPacman(BAS);
+        jeu.setDirectionPacmanFuture(BAS);
+        cout<<"Touche Bas"<<endl;
     }
     update();
 }
 
 void PacmanWindow::handleTimer()
 {
-    //cout<<__FUNCTION__<<endl;
+    cout<<__FUNCTION__<<endl;
+    list<Fantome>::iterator itFantome;
     jeu.evolue();
     update();
 
-    //Vérifie si niveau finito
-    if (jeu.getFinNiveau() == true)
-        handleBoutonNivSuivant();
+    //Si un fantome est mangeable, le compteur s'incrémente
+    //au bout de 80 incrémentations, le compteur se réinitialise
+    //et passe les fantomes en non mangeables
+    if(jeu.fantomes.begin()->getEstMangeable() == true)
+    {
+        if(jeu.getCompteur() >= 0 && jeu.getCompteur() < DelaisFantomes)
+        {
+            //cout<<"Compteur = "<<jeu.getCompteur()<<endl;
+            jeu.setCompteur(jeu.getCompteur()+1);
+        }
+
+        else if (jeu.getCompteur() >= DelaisFantomes)
+        {
+            //cout<<"Coucou"<<endl;
+            for(itFantome=jeu.fantomes.begin(); itFantome!=jeu.fantomes.end(); itFantome++)
+            {
+                itFantome->setEstMangeable(false);
+                jeu.setCompteur(0);
+            }
+        }
+    }
 
     //Vérifie si la partie est perdue
     if (jeu.getNbVie() == 0)
-        {
-            cout<<"nbVies = 0, timer stop"<<endl;
-            this->timer->stop();
-            //QTimer::singleShot(4000, this, &PacmanWindow::handleBoutonNouvellePartie);
-        }
+    {
+        cout<<"nbVies = 0, timer stop"<<endl;
+        this->timer->stop();
+        //QTimer::singleShot(4000, this, &PacmanWindow::handleBoutonNouvellePartie);
+    }
+
+    //Vérifie si niveau finito
+    if (jeu.getFinNiveau() == true)
+    {
+        handleBoutonNivSuivant();
+    }
 }
 
 void PacmanWindow::handleBoutonAjoutVie()
@@ -235,7 +289,7 @@ void PacmanWindow::handleBoutonSupprVie()
 
 void PacmanWindow::handleBoutonNouvellePartie()
 {
-    //cout<<__FUNCTION__<<endl;
+    cout<<__FUNCTION__<<endl;
     cout<<"Nouvelle partie"<<endl;
     jeu.init();
     jeu.setScore(0);
@@ -245,16 +299,11 @@ void PacmanWindow::handleBoutonNouvellePartie()
 
 void PacmanWindow::handleBoutonNivSuivant()
 {
-    //cout<<__FUNCTION__<<endl;
+    cout<<__FUNCTION__<<endl;
     cout<<"Niveau reussi !"<<endl<<"Nouveau niveau"<<endl;
     this->timer->stop();
     jeu.init();
-    update();/*
-    QTimer::singleShot(2000, this, &PacmanWindow::handleTimer);
-    cout<<"Début dans :"<<endl<<"3"<<endl;
-    QTimer::singleShot(2000, this, &PacmanWindow::handleTimer);
-    cout<<"2"<<endl;
-    QTimer::singleShot(2000, this, &PacmanWindow::handleTimer);
-    cout<<"1"<<endl;*/
+    update();
     this->timer->start();
 }
+
