@@ -13,7 +13,6 @@ Fantome::Fantome()
     posX = 0; posY = 0;
     dir = HAUT;
     estMangeable = false;
-    compteur = 0;
 }
 
 //Accesseur Position X fantome
@@ -40,17 +39,6 @@ void Fantome::setEstMangeable(bool pEstMangeable)
         estMangeable = pEstMangeable;
     }
 
-//Accesseur Compteur fantome
-int Fantome::getCompteur() const
-{
-    return compteur;
-}
-
-//Mutateur Etat fantome
-void Fantome::setCompteur(int pCompteur)
-    {
-        compteur = pCompteur;
-    }
 
 //************************Jeu************************//
 
@@ -62,6 +50,7 @@ Jeu::Jeu()
     largeur = 0; hauteur = 0;
     posPacmanX = 0; posPacmanY = 0;
     finNiveau = false;
+    compteur = 0;
     //cout<<"score : "<<score<<endl;
 }
 
@@ -88,6 +77,7 @@ bool Jeu::init()
 	nbVies = 3;
     fantomes.clear();
     finNiveau = false;
+    compteur = 0;
 
 	//Déclaration du terrain
 	const char terrain_defaut[hauteur][largeur+1] = {
@@ -99,14 +89,14 @@ bool Jeu::init()
 		"#....#...#...#....#",
 		"####.###.#.###.####",
 		"####.#.......#.####",
-		"####.#.##.##.#.####",
+		"####0#.##.##.#.####",
 		"xxxx...##.##...xxxx",
 		"####.#.#####.#.####",
-		"####.#...x...#....#",
+		"####0#...x...#0...#",
 		"####.#.#####.#.##.#",
-		"#........#.......0#",
+		"#.0......#.......0#",
 		"#.##.###.#.###.##.#",
-		"#..#...........#..#",
+		"#..#..0.....0..#..#",
 		"##.#.#.#####.#.#.##",
 		"#....#...#...#....#",
 		"#.######.#.######.#",
@@ -151,7 +141,7 @@ bool Jeu::init()
 //Actualisation jeu
 void Jeu::evolue()
 {
-    //cout<<__FUNCTION__<<endl;
+    cout<<__FUNCTION__<<endl;
     //Deplacement du pacman en fonction de la direction
     setDirectionPacman();
     deplacePacman(directionPacman);
@@ -179,14 +169,7 @@ void Jeu::evolue()
 
     testPositionPacman();
 
-    cout<<"Fin de niveau = "<<finNiveau<<endl;
     finNiveau = testFinNiveau();
-
-    cout<<"Fin de niveau = "<<finNiveau<<endl;
-    //Fonction de fin de partie
-        //if(nbVies == 0);
-            //directionPacman = (Direction) 4;
-            //directionPacmanFuture = (Direction) 4;
 }
 
 void Jeu::ajouter_fantome()
@@ -282,21 +265,27 @@ bool Jeu::getFinNiveau() const
     return finNiveau;
 }
 
+//Accesseur Compteur
+int Jeu::getCompteur() const
+{
+    return compteur;
+}
+
+//Mutateur Compteur
+void Jeu::setCompteur(int pCompteur)
+    {
+        compteur = pCompteur;
+    }
 
 //************Méthodes de position du pacman************//
 
-//Renvoie vrai si la position existe et est vide
+//Renvoie vrai si la position existe et n'est pas un mur
 bool Jeu::posValide(int x, int y) const
 {
-    bool retour;
-    if (x>=0 && x<largeur && y>=0 && y<hauteur && terrain[y*largeur+x]!=MUR)
-        retour = true;
-    else
-        retour=false;
-
-    return retour;
+    return (x>=0 && x<largeur && y>=0 && y<hauteur && terrain[y*largeur+x]!=MUR);
 }
 
+/*
 //Change la direction du pacman si la direction est possible
 void Jeu::setDirectionPacman(Direction dir)
 {
@@ -304,11 +293,12 @@ void Jeu::setDirectionPacman(Direction dir)
     int depY[] = {0, 0, -1, 1};
     int testX, testY;
 
+    //Associe 2 direction à tester
     testX = posPacmanX + depX[dir];
     testY = posPacmanY + depY[dir];
 
     //si la nouvelle direction est possible, changement de direction
-    if (posValide(testX, testY)&directionPacman!=directionPacmanFuture)
+    if (posValide(testX, testY) && (directionPacman!=directionPacmanFuture))
         {
             directionPacman=dir;
             directionPacmanFuture=(Direction) 4;
@@ -316,6 +306,12 @@ void Jeu::setDirectionPacman(Direction dir)
     //Sinon, changement de direction à la prochaine case vide
     else
         directionPacmanFuture=dir;
+}
+*/
+
+void Jeu::setDirectionPacmanFuture(Direction pDirectionFuture)
+{
+    directionPacmanFuture = pDirectionFuture;
 }
 
 //Change la direction du pacman si la direction est possible
@@ -325,14 +321,15 @@ void Jeu::setDirectionPacman()
     int depY[] = {0, 0, -1, 1};
     int testX, testY;
 
+    //Associe 2 direction à tester
     testX = posPacmanX + depX[directionPacmanFuture];
     testY = posPacmanY + depY[directionPacmanFuture];
 
-    //
-    if (posValide(testX, testY) & directionPacman!=directionPacmanFuture)
+    //Si test bon,
+    if (posValide(testX, testY) && (directionPacman!=directionPacmanFuture))
         {
-            directionPacman=directionPacmanFuture;
-            directionPacmanFuture=(Direction)4;
+            directionPacman = directionPacmanFuture;
+            directionPacmanFuture = (Direction)4;
         }
 }
 
@@ -378,22 +375,25 @@ void Jeu::testPositionPacman()
             //En non mangeable sinon
             for (itFantome=fantomes.begin(); itFantome!=fantomes.end(); itFantome++)
             {
+                itFantome->estMangeable = true;
+                compteur = 0;
+                /*
                 if(itFantome->compteur >= 0 && itFantome->compteur <2)
                 {
-                    itFantome->estMangeable = true;
-                    itFantome->compteur++;
-                    //cout<<"cas 1"<<endl;
-                    //cout<<"compteur = "<<itFantome->compteur<<endl;
-                    //cout<<"estMangeable = "<<itFantome->estMangeable<<endl;
+
+                    //itFantome->compteur++;
+                    cout<<"cas 1"<<endl;
+                    cout<<"compteur = "<<itFantome->compteur<<endl;
+                    cout<<"estMangeable = "<<itFantome->estMangeable<<endl;
                 }
                 else if (itFantome->compteur >= 2)
                 {
                     itFantome->estMangeable = false;
                     itFantome->compteur = 0;
-                    //cout<<"cas 2"<<endl;
-                    //cout<<"compteur = "<<itFantome->compteur<<endl;
-                    //cout<<"estMangeable = "<<itFantome->estMangeable<<endl;
-                }
+                    cout<<"cas 2"<<endl;
+                    cout<<"compteur = "<<itFantome->compteur<<endl;
+                    cout<<"estMangeable = "<<itFantome->estMangeable<<endl;
+                }*/
             }
             //Timer 20s
             //Si fantomes mangé
@@ -413,34 +413,16 @@ void Jeu::testPositionPacman()
 bool Jeu::testFinNiveau()
 {
     int x, y;
-    cout<<__FUNCTION__<<endl;
+    //cout<<__FUNCTION__<<endl;
     for(y=0;y<hauteur;++y)
     {
         for(x=0;x<largeur;++x)
         {
             if(terrain[y*largeur+x] == PION ||terrain[y*largeur+x] == GROSPION)
             {
-                cout<<"Case pion"<<endl;
                 return false;
             }
         }
     }
     return true;
 }
-
-//************Etat des fantomes************//
-
-// A revoir
-void Jeu::rendFantomesMangeables()
-{
-    //int i = 0;
-    list<Fantome>::iterator itFantome;
-    for (itFantome=fantomes.begin(); itFantome!=fantomes.end(); itFantome++)
-    {
-        itFantome->estMangeable = true;
-        //i++;
-        //cout<<"Fantome "<< i <<" = "<<itFantome->estMangeable<<endl;
-    }
-}
-
-
